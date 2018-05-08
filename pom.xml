@@ -71,13 +71,11 @@
       <groupId>org.reaktivity</groupId>
       <artifactId>nukleus</artifactId>
       <version>${nukleus.version}</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.reaktivity</groupId>
       <artifactId>nukleus-tcp.spec</artifactId>
       <version>${nukleus.tcp.spec.version}</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.reaktivity</groupId>
@@ -134,6 +132,11 @@
       <version>${k3po.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.hdrhistogram</groupId>
+      <artifactId>HdrHistogram</artifactId>
+      <version>2.1.10</version>
+   </dependency>
     <dependency>
       <groupId>org.jmock</groupId>
       <artifactId>jmock-junit4</artifactId>
@@ -354,6 +357,7 @@
                   <include>org.apache.commons:commons-math3</include>
                   <include>commons-cli:commons-cli</include>
                   <include>com.github.biboudis:jmh-profilers</include>
+                  <include>org.hdrhistogram:HdrHistogram</include>
                 </includes>
               </artifactSet>
             </configuration>

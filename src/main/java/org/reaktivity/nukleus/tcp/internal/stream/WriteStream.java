@@ -25,6 +25,7 @@ import java.util.function.LongConsumer;
 import java.util.function.LongSupplier;
 import java.util.function.ToIntFunction;
 
+import org.HdrHistogram.Histogram;
 import org.agrona.DirectBuffer;
 import org.agrona.LangUtil;
 import org.reaktivity.nukleus.buffer.BufferPool;
@@ -75,6 +76,11 @@ public final class WriteStream
     private int windowThreshold;
 
     private int pendingCredit;
+
+    final Histogram histogram = new Histogram(3600000000L, 5);
+
+    int messagesSentOrFailedCount = 0;
+    int messagesAttemptCount = 0;
 
     WriteStream(
         MessageConsumer sourceThrottle,
@@ -201,12 +207,41 @@ public final class WriteStream
         {
             final ByteBuffer writeBuffer = getWriteBuffer(buffer, payload.offset(), writableBytes);
             final int remainingBytes = writeBuffer.remaining();
+//            byte[] toSend = new byte[remainingBytes];
+//            ByteBuffer toWrite = ByteBuffer.wrap(toSend);
+//            toWrite.put(writeBuffer);
+//            toWrite.flip();
 
             int bytesWritten = 0;
 
+//            Instant start = Instant.now();
+            final long before = System.nanoTime();
             for (int i = WRITE_SPIN_COUNT; bytesWritten == 0 && i > 0; i--)
             {
                 bytesWritten = channel.write(writeBuffer);
+//                System.out.println("duration = " + (after - before));
+                messagesAttemptCount++;
+            }
+            final long after = System.nanoTime();
+            histogram.recordValue(after - before);
+            messagesSentOrFailedCount++;
+            if (messagesSentOrFailedCount == 100000)
+            {
+                System.out.println(channel.provider().toString());
+                channel.supportedOptions().forEach(option ->
+                {
+                    try
+                    {
+                        System.out.println(option.name().toString() + " " + channel.getOption(option));
+                    }
+                    catch (IOException e)
+                    {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                });
+                System.out.println("DPW: " + (messagesAttemptCount - messagesSentOrFailedCount));
+                histogram.outputPercentileDistribution(System.out, 1.0);
             }
 
             int originalSlot = slot;
@@ -371,6 +406,7 @@ public final class WriteStream
         int bytesWritten = 0;
         try
         {
+            System.out.println("never gets here ??");
             bytesWritten = channel.write(writeBuffer);
         }
         catch (IOException ex)
